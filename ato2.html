@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arquivo Secreto - Ato I</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Times+New+Roman&display=swap" rel="stylesheet">
+    <style>
+        /* =========================================================================
+           ESTILOS GERAIS - EFEITO DE PAPEL E CONFINAMENTO
+           ========================================================================= */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+        body {
+            background-color: #111;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: auto;
+            padding: 40px 0;
+        }
+
+        /* O CONTAINER PRINCIPAL É O "PAPEL" */
+        .document-container {
+            width: 90%;
+            max-width: 700px;
+            background-color: #f7f3e8; 
+            color: #333;
+            padding: 40px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5), inset 0 0 50px rgba(100, 100, 100, 0.1);
+            border: 1px solid #c0c0c0;
+            font-family: 'Times New Roman', serif;
+            line-height: 1.6;
+            position: relative;
+            transition: transform 0.05s ease, filter 0.05s ease;
+            overflow: hidden; 
+        }
+        
+        /* EFEITO DE GLITCH (TREMOR E DESLOCAMENTO) */
+        .document-container.glitch-page {
+            transform: translate(1px, -1px) rotate(-0.1deg);
+            filter: hue-rotate(5deg);
+        }
+
+        /* EFEITO DE RUÍDO DO PAPEL */
+        .document-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH5QgKDCQ42tM88QAAABd0RVh0Q3JlYXRpb24gVGltZGUgMDguMDYuMjEgMTI6MjQ6NDcgAAAJYktHRACcR/4rAAAACklEQVQI12M8wMDAQAAgAgAB5c8UQQAAAABJRU5ErkJggg==');
+            opacity: 0.3;
+            pointer-events: none;
+        }
+        
+        /* NOVO: MANCHAS DE SANGUE (APENAS ALGUMAS MANCHAS PONTUAIS) */
+        .document-container::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 15% 85%, rgba(139, 0, 0, 0.7), rgba(139, 0, 0, 0) 60%),
+                radial-gradient(circle at 80% 20%, rgba(139, 0, 0, 0.5), rgba(139, 0, 0, 0) 50%),
+                radial-gradient(circle at 45% 60%, rgba(139, 0, 0, 0.6), rgba(139, 0, 0, 0) 55%);
+            opacity: 0.3; /* Opacidade um pouco mais sutil */
+            pointer-events: none;
+            mix-blend-mode: multiply; 
+            filter: blur(1px);
+        }
+
+        /* =========================================================================
+           ESTILOS DO CONTEÚDO
+           ========================================================================= */
+        h1 {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 1.2rem;
+            color: #8B0000;
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #8B0000;
+            padding-bottom: 10px;
+            position: relative; 
+            z-index: 2; /* Garante que o texto fique acima do after */
+        }
+        /* Os textos normais precisam de z-index para ficar acima das manchas */
+        .section-title, .paragraph, .main-news, .glitch-text, .accept-section {
+            position: relative;
+            z-index: 2;
+        }
+
+
+        .section-title {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 0.7rem;
+            color: #444;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            border-bottom: 1px dashed #666;
+            padding-bottom: 5px;
+        }
+
+        .paragraph {
+            font-size: 1rem;
+            margin-bottom: 20px;
+            text-align: justify;
+        }
+        
+        .main-news {
+            font-size: 1.05rem;
+            font-weight: bold;
+            color: #000;
+            margin: 30px 0;
+            padding: 10px;
+            border-left: 3px solid #8B0000;
+        }
+
+        /* =========================================================================
+           EFEITO DE CENSURA/BORRADO (GLITCH)
+           ========================================================================= */
+        .glitch-text {
+            font-family: 'Press Start 2P', monospace;
+            color: #DC143C;
+            display: block;
+            margin: 15px 0;
+            font-size: 0.6rem;
+            text-align: center;
+        }
+        .glitch-text.top {
+            font-size: 0.7rem;
+            margin-bottom: 30px;
+        }
+        .glitch-text.bottom {
+            margin-top: 30px;
+            font-size: 0.8rem;
+        }
+
+        /* Efeito de Borrão/Censura */
+        .censura {
+            background-color: #555;
+            color: transparent;
+            text-shadow: none;
+            padding: 0 4px;
+            display: inline-block;
+            line-height: 1.2;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 0.6rem;
+        }
+
+        /* =========================================================================
+           NOVO: O TEXTO FLUTUANTE "YOU" (MENOR, FRENÉTICO E GLITCH)
+           ========================================================================= */
+        #floating-you {
+            position: fixed;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 1.5rem; /* Menor */
+            color: #FF0000;
+            opacity: 0.8; 
+            text-shadow: none; /* Sem sombra para um visual mais "vazado" */
+            pointer-events: none; 
+            display: none;
+            z-index: 99;
+            /* MUITO MAIS RÁPIDO E FRENÉTICO */
+            transition: top 0.1s linear, left 0.1s linear; /* Mais rápido */
+            animation: glitch-you 0.03s steps(2, end) infinite; /* Animação de glitch mais rápida */
+        }
+        @keyframes glitch-you {
+            0% { transform: translate(-2px, 2px) skewX(0.5deg); opacity: 0.9; }
+            50% { transform: translate(2px, -2px) skewX(-0.5deg); opacity: 0.8; }
+            100% { transform: translate(0, 0) skewX(0); opacity: 1; }
+        }
+
+        /* =========================================================================
+           BOTÃO DE ACEITE
+           ========================================================================= */
+        .accept-section {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #ccc;
+        }
+        .accept-btn {
+            padding: 10px 20px;
+            background: #8B0000;
+            border: 2px solid #000;
+            color: #f7f3e8;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 0.6rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 2px 2px 5px #000000;
+        }
+        .accept-btn:hover {
+            background: #DC143C;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="document-container" id="documentContainer">
+        <h1>RELATÓRIO POLICIAL DE ALERTA MÁXIMO</h1>
+
+        <div class="glitch-text top">
+            <span class="censura">[PROTOCOLO 5]</span> <span class="censura">ARQUIVO DE VIGILÂNCIA</span>
+            <span class="censura">INVESTIGAÇÃO:</span> 
+            <span class="censura">TH-OR-NE (V.S.A. C-OR-P.)</span>
+        </div>
+
+        <div class="section-title">ALERTA MÁXIMO: O JOGO É A PROVA DA SUSPEITA</div>
+
+        <div class="main-news">
+            <p>A V.S.A. CORP. Sob Investigação Policial; Desenvolvedor Preso e Ligado a Padrões Criminais. A investigação sobre o jogo Flap of Despair, da Vance-Sterling Albright Corporation (V.S.A. Corp.), escalou de um mistério digital para um caso policial de alto risco. O desenvolvedor-chefe, Elias Thorne, foi detido pela polícia sob suspeita de envolvimento em eventos trágicos recentes na região. A polícia estuda a hipótese de que o terror digital era um "ensaio" para crimes reais, usando as falhas de software como um sinistro padrão.</p>
+        </div>
+        
+        <div class="section-title">O Padrão Secreto e a Pontuação Limite (666)</div>
+        <div class="paragraph">
+            A paranoia sobre o jogo ultrapassou os limites virtuais quando a polícia encontrou evidências que ligavam o código do jogo a incidentes externos. O *Flap of Despair* é conhecido por sua transição assustadora: do ambiente fofo para o Modo 66, onde o jogo atinge sua pontuação máxima de 666 e força o jogador à "Morte Fatal".
+        </div>
+        <div class="paragraph">
+            Logo após a prisão de Elias Thorne, a polícia descobriu um e-mail final em seus arquivos, enviado por um remetente não identificado, "O Corvo". A mensagem continha a linha chocante: "O toque sutil no mundo real. O próximo nível é real." Esta pista, combinada com os padrões de jogabilidade do título, levou as autoridades a conectar Thorne a eventos sob investigação.
+        </div>
+        <div class="paragraph">
+            As autoridades estão apurando a possibilidade de que o desenvolvedor tenha criado um *modus operandi* baseado nas mecânicas de falha do jogo. Foi estabelecida uma suspeita de ligação entre o padrão do software e a série de incidentes que resultaram no falecimento de jovens locais, cujos detalhes a polícia se recusou a fornecer, limitando-se a confirmar a gravidade da situação.
+        </div>
+
+        <div class="section-title">A Revelação do T9: A Pista do Assassino</div>
+        <div class="paragraph">
+            A polícia revelou a descoberta de um arquivo de log criptografado, uma sequência de T9 (código de teclado numérico) que se tornou uma pista crucial para a investigação. A mensagem decifrada é uma acusação direta e perturbadora:
+        </div>
+        <div class="main-news" style="color: #8B0000; border-left-color: #000;">
+            "ELIAS ENGENHEIROU O LASTRO DE FRANKLIN. ELE FECHOU O CANO 66. NÃO FOI UM ERRO DE SISTEMA. PARA LIBERTAR MAISIE, PROCURE A CHAVE QUE VOA. O código é: <span class="censura">A B E L H A</span>."
+        </div>
+        <div class="paragraph">
+            A mensagem acusa Thorne de ter "engenheirado" as mortes do jogo, sugerindo que o código não falhava, mas sim operava conforme o plano. A menção ao "LASTRO" e ao "cano 66" liga os métodos de falha do jogo diretamente à suspeita de assassinato.
+        </div>
+        <div class="paragraph">
+            A evidência sugere que o assassino usou a *lore* e os métodos implícitos nas falhas de jogabilidade do *Flap of Despair* para traçar um padrão criminoso. Se Elias Thorne está sob custódia, quem é "O Corvo" que está finalizando seu jogo cruel no mundo real e por que ele forneceu o código para "libertar Maisie"? O terror digital se manifestou, e agora é um pesadelo real sob investigação.
+        </div>
+
+        <div class="glitch-text bottom">
+            <span class="censura">CLASSIFICADO COMO EVIDÊNCIA #734</span> 
+            <span class="censura">PROSSEGUIR COM OS ATOS É CRUCIAL.</span>
+        </div>
+
+        <div class="accept-section">
+            <button class="accept-btn" id="acceptBtn">LI E ACEITO OS TERMOS</button>
+        </div>
+
+    </div>
+    
+    <div id="floating-you">YOU</div>
+
+    <script>
+        // =====================================
+        // VARIÁVEIS E LÓGICA DO GLITCH VISUAL
+        // =====================================
+        const documentContainer = document.getElementById('documentContainer');
+        const floatingYou = document.getElementById('floating-you');
+        let youAnimationTimeout = null;
+        
+        // 1. Lógica do Glitch da Página (10% de chance de ocorrer a cada 2 segundos)
+        function togglePageGlitch() {
+            if (Math.random() < 0.10) { 
+                documentContainer.classList.add('glitch-page');
+                setTimeout(() => {
+                    documentContainer.classList.remove('glitch-page');
+                }, 100); 
+            }
+        }
+        setInterval(togglePageGlitch, 2000); 
+
+
+        // 2. Lógica do Texto Flutuante "YOU" (20% de chance de ativação e movimento frenético/glitch)
+        function updateFloatingYouPosition() {
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+            
+            // O texto "YOU" tem uma largura e altura baseadas no font-size
+            // Ajustamos o buffer para que não saia muito da tela
+            const textWidth = floatingYou.offsetWidth || 50; 
+            const textHeight = floatingYou.offsetHeight || 30;
+
+            const newX = Math.random() * (viewportWidth - textWidth); 
+            const newY = Math.random() * (viewportHeight - textHeight); 
+            
+            floatingYou.style.left = `${newX}px`;
+            floatingYou.style.top = `${newY}px`;
+            
+            // Loop recursivo para o movimento rápido (100ms)
+            youAnimationTimeout = setTimeout(updateFloatingYouPosition, 100); 
+        }
+        
+        function startFloatingYou() {
+            // Verifica a chance de 20% UMA ÚNICA VEZ ao carregar a página
+            if (Math.random() < 0.20) {
+                floatingYou.style.display = 'block';
+                updateFloatingYouPosition(); 
+            }
+        }
+        
+        // =====================================
+        // SISTEMA DE ÁUDIO (Simples Clique)
+        // =====================================
+        let audioContext;
+        function initAudio() {
+            if (!audioContext) { 
+                audioContext = new (window.AudioContext || window.webkitAudioContext)(); 
+            }
+        }
+        function playClickSound() { 
+             initAudio(); 
+             if (audioContext.state === 'suspended') { audioContext.resume(); } 
+             const osc = audioContext.createOscillator();
+             const gain = audioContext.createGain();
+             osc.connect(gain); gain.connect(audioContext.destination);
+             osc.type = 'square';
+             osc.frequency.setValueAtTime(300, audioContext.currentTime);
+             gain.gain.setValueAtTime(0.1, audioContext.currentTime);
+             gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.05);
+             osc.start(audioContext.currentTime); osc.stop(audioContext.currentTime + 0.05);
+        }
+
+        // =====================================
+        // LÓGICA DE NAVEGAÇÃO
+        // =====================================
+        document.getElementById('acceptBtn').addEventListener('click', function() {
+            playClickSound();
+            
+            // Limpa o loop do 'YOU' antes de sair
+            if (youAnimationTimeout) {
+                clearTimeout(youAnimationTimeout);
+            }
+            
+            // Simples atraso para transição e clique
+            setTimeout(() => {
+                window.location.href = 'comentarios.html'; 
+            }, 500); 
+        });
+
+        // Adiciona som ao passar o mouse para dar feedback
+        document.getElementById('acceptBtn').addEventListener('mouseover', playClickSound);
+
+        // Inicia a verificação do texto flutuante ao carregar
+        document.addEventListener('DOMContentLoaded', startFloatingYou);
+    </script>
+</body>
+</html>

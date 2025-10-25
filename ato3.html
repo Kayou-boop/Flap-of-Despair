@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arquivo Secreto - Ato III</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Times+New+Roman&family=Permanent+Marker&display=swap" rel="stylesheet">
+    <style>
+        /* =========================================================================
+           ESTILOS GERAIS - EFEITO DE PAPEL E CONFINAMENTO
+           ========================================================================= */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+        body {
+            background-color: #111;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: auto;
+            padding: 40px 0;
+        }
+
+        /* O CONTAINER PRINCIPAL É O "PAPEL" */
+        .document-container {
+            width: 90%;
+            max-width: 700px;
+            /* Cor de papel antigo/sujo */
+            background-color: #f7f3e8; 
+            color: #333;
+            padding: 40px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5), inset 0 0 50px rgba(100, 100, 100, 0.1);
+            border: 1px solid #c0c0c0;
+            font-family: 'Times New Roman', serif;
+            line-height: 1.6;
+            position: relative;
+            transition: transform 0.05s ease, filter 0.05s ease;
+            overflow: hidden; 
+        }
+        
+        /* EFEITO DE GLITCH (TREMOR E DESLOCAMENTO) */
+        .document-container.glitch-page {
+            transform: translate(1px, -1px) rotate(-0.1deg);
+            filter: hue-rotate(5deg);
+        }
+
+        /* EFEITO DE RUÍDO DO PAPEL */
+        .document-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH5QgKDCQ42tM88QAAABd0RVh0Q3JlYXRpb24gVGltZGUgMDguMDYuMjEgMTI6MjQ6NDcgAAAJYktHRACcR/4rAAAACklEQVQI12M8wMDAQAAgAgAB5c8UQQAAAABJRU5ErkJggg==');
+            opacity: 0.3;
+            pointer-events: none;
+        }
+        
+        /* MANCHAS DE SANGUE (DO CÓDIGO FORNECIDO) */
+        .document-container::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 15% 85%, rgba(139, 0, 0, 0.7), rgba(139, 0, 0, 0) 60%),
+                radial-gradient(circle at 80% 20%, rgba(139, 0, 0, 0.5), rgba(139, 0, 0, 0) 50%),
+                radial-gradient(circle at 45% 60%, rgba(139, 0, 0, 0.6), rgba(139, 0, 0, 0) 55%),
+                radial-gradient(circle at 5% 10%, rgba(100, 0, 0, 0.4), rgba(100, 0, 0, 0) 40%),
+                radial-gradient(circle at 90% 95%, rgba(150, 0, 0, 0.5), rgba(150, 0, 0, 0) 50%);
+
+            opacity: 0.4;
+            pointer-events: none;
+            mix-blend-mode: multiply;
+            filter: blur(1px);
+            z-index: 1; 
+        }
+
+        /* Garante que o texto fique acima do '::after' de sangue */
+        h1, .section-title, .paragraph, .main-news, .glitch-text, .accept-section, .quote, .list-section, #elias-diary {
+            position: relative;
+            z-index: 2;
+        }
+
+        /* =========================================================================
+           ESTILOS DO CONTEÚDO NORMAL
+           ========================================================================= */
+        h1 {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 1.2rem;
+            color: #8B0000;
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #8B0000;
+            padding-bottom: 10px;
+        }
+
+        .section-title {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 0.7rem;
+            color: #444;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            border-bottom: 1px dashed #666;
+            padding-bottom: 5px;
+        }
+
+        .paragraph {
+            font-size: 1rem;
+            margin-bottom: 20px;
+            text-align: justify;
+        }
+        
+        .main-news {
+            font-size: 1.05rem;
+            font-weight: bold;
+            color: #000;
+            margin: 30px 0;
+            padding: 10px;
+            border-left: 3px solid #8B0000;
+        }
+        
+        .quote {
+            font-style: italic;
+            border-left: 5px solid #DC143C;
+            padding-left: 15px;
+            margin: 20px 0;
+            color: #8B0000;
+            font-family: 'Times New Roman', serif;
+            font-size: 0.9rem;
+        }
+        
+        /* =========================================================================
+           NOVO: ESTILOS DO DIÁRIO DE ELIAS THORNE
+           ========================================================================= */
+        #elias-diary {
+            display: none; /* Inicia oculto */
+            font-family: 'Permanent Marker', cursive; /* Fonte de escrita manual */
+            line-height: 1.4;
+            color: #333;
+            padding: 20px 0;
+        }
+        #elias-diary h2 {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 1rem;
+            color: #8B0000;
+            text-align: center;
+            margin-bottom: 40px;
+            text-decoration: underline;
+        }
+        #elias-diary .diary-entry {
+            margin-bottom: 30px;
+            padding: 10px;
+            border-left: 5px dashed #444;
+            background-color: rgba(255, 255, 255, 0.5); /* Leve fundo para destaque */
+        }
+        #elias-diary .diary-entry strong {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+            color: #8B0000;
+        }
+        #elias-diary p {
+            font-size: 0.95rem;
+            margin: 0;
+            text-align: left;
+        }
+        .diary-censura {
+            color: #8B0000;
+            text-decoration: line-through;
+            font-style: italic;
+            background-color: #f7f3e8;
+            padding: 0 2px;
+        }
+        
+        /* =========================================================================
+           EFEITO DE CENSURA/BORRADO (GLITCH) - ESTILO COMPARTILHADO
+           ========================================================================= */
+        .glitch-text {
+            font-family: 'Press Start 2P', monospace;
+            color: #DC143C; 
+            display: block;
+            margin: 15px 0;
+            font-size: 0.6rem;
+            text-align: center;
+        }
+        /* ... outros estilos de glitch-text ... */
+
+        .censura {
+            background-color: #555;
+            color: transparent;
+            text-shadow: none;
+            padding: 0 4px;
+            display: inline-block;
+            line-height: 1.2;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 0.6rem;
+        }
+
+        /* =========================================================================
+           BOTÃO FINAL DE ENCERRAMENTO
+           ========================================================================= */
+        .accept-section {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #ccc;
+        }
+        .accept-btn {
+            padding: 10px 20px;
+            background: #000; 
+            border: 2px solid #DC143C; 
+            color: #f7f3e8;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 0.6rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 2px 2px 5px #000000;
+        }
+        .accept-btn:hover {
+            background: #333;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="document-container" id="documentContainer">
+        
+        <div id="normal-report">
+            <h1>ALERTA MÁXIMO: O JOGO É A PROVA DO CRIME</h1>
+
+            <div class="glitch-text top">
+                <span class="censura">[PROT-OCOL-O]</span> <span class="censura">AR-Q-UI-V-O M-O-R-T-O</span> 
+                <span class="censura">RE-CEB-IDO:</span> 
+                <span class="censura">O C-O-R-V-O</span>
+            </div>
+
+            <div class="section-title">O Enigma da Tela Preta: O Triunfo de 'O Corvo'</div>
+
+            <div class="main-news">
+                <p>O que começou como um inocente passatempo digital, o jogo Flap of Despair, escalou para uma tragédia real com o desmantelamento da Vance-Sterling Albright Corporation (V.S.A. Corp.). O desenvolvedor-chefe, <span class="censura">ELIAS THORNE</span>, está detido e sob investigação, suspeito de envolvimento em uma série de homicídios infantis que imitam os "Finais Fatais" do seu próprio jogo. A polícia trabalha para identificar o verdadeiro mentor por trás dos crimes: <span class="censura">O CORVO</span>.</p>
+            </div>
+
+            <div class="section-title">O Lastro e a Traição no Código</div>
+
+            <p class="paragraph">
+                Nossa equipe obteve acesso a comentários internos da <span class="censura">V.S.A. CORP.</span> que revelam a perda de controle do projeto. O personagem Franklin, a Tartaruga, representava a transição do terror: sua jogabilidade, baseada em um "Lastro" imposto pela física, forçava o jogador à claustrofobia dos canos fechados no Score <span class="censura">66</span>. Enquanto os desenvolvedores relataram pânico, Elias Thorne via a falha de IA como um recurso.
+            </p>
+
+            <p class="paragraph">
+                A suspeita contra Thorne foi reforçada pela decodificação de um arquivo T9 encontrado em um log da empresa. A mensagem, uma acusação fria, tornou-se a primeira evidência forte do crime:
+            </p>
+
+            <div class="quote">
+                "ELIAS ENGENHEIROU O LASTRO DE FRANKLIN. ELE FECHOU O CANO 66. NÃO FOI UM ERRO DE SISTEMA. PARA LIBERTAR MAISIE, PROCURE A CHAVE QUE VOA. O código é: <span style="color: #00008B;">A B E L H A</span>."
+            </div>
+
+            <div class="section-title">Maisie e a Morte Sutil (<span class="censura">SCORE 666</span>)</div>
+
+            <p class="paragraph">
+                A investigação avançou ao descobrir a jogabilidade de Maisie, a Abelha, que só podia ser acessada com o código "<span class="censura">ABELHA</span>". Maisie, o personagem mais frágil e volátil, tinha uma mecânica perigosa: o jogador devia segurar o clique para mantê-la no ar, correndo o risco de aceleração descontrolada e colisão.
+            </p>
+            <p class="paragraph">
+                No score <span class="censura">666</span> (a pontuação limite do jogo), o predador de Maisie — o Urso Esfomeado — aparecia com um hitbox minúsculo e preciso, forçando o jogador à colisão fatal. Este método, batizado internamente como <span class="censura">O TOQUE SUTIL</span>, seria a chave para a terceira morte real.
+            </p>
+
+            <div class="section-title">O Círculo Fechado: O Plano Triplo</div>
+            <p class="paragraph">
+                A polícia confirmou o elo entre os personagens do jogo e as vítimas, revelando que a lógica do Flap of Despair foi usada como um guia de ataque. Cada criança foi alvo de um método que replicava as falhas fatais do software, atingindo a pontuação máxima de <span class="censura">666</span>.
+            </p>
+
+            <div class="list-section">
+                <ul>
+                    <li>• O Peso do <span class="censura">SHELDON</span> (O Camarão): <span>Ligado a um incidente onde a vítima foi encontrada em uma tubulação, sob o efeito de uma pressão de queda que imitava a morte pesada e lenta do camarão.</span></li>
+                    <li>• O Lastro de <span class="censura">FRANKLIN</span> (A Tartaruga): <span>Ligado a um incidente onde a vítima foi encontrada em um fosso de concreto. O método explorou o esmagamento contra uma superfície dura, replicando o "Lastro" imposto.</span></li>
+                    <li>• O Toque da <span class="censura">MAISIE</span> (A Abelha): <span>Ligado a um ataque mais sutil e cirúrgico. O método copiava a fragilidade da Abelha e a precisão do hitbox do seu predador (<span class="censura">O URSO ESFOMEADO</span>).</span></li>
+                </ul>
+            </div>
+            <p class="paragraph">As mortes não foram acidentes. O assassino as considerou os três "finais" diferentes de um único e cruel jogo.</p>
+            
+            <div class="section-title" style="color: #DC143C;">O Arquivo Proibido: O Triunfo de 'O Corvo' no Ato III</div>
+
+            <p class="paragraph">
+                Apesar de Elias Thorne estar detido, as mensagens finais do assassino foram encontradas no arquivo <span class="censura">ATO III</span>, acessado pela investigação. A mensagem é uma clara admissão de culpa por parte de O Corvo e um escárnio sobre a tragédia:
+            </p>
+
+            <div class="quote" style="border-left: 5px solid #000;">
+                <p>"Thorne se achava um visionário, mas não passou de uma ferramenta. Ele deu à IA uma vida e me deu a plateia. A culpa dele é real, mas a execução... Ah, a <span class="censura">EXECUÇÃO FOI ARTE</span>."</p>
+                <p>— <span class="censura">O CORVO</span></p>
+            </div>
+            
+            <p class="paragraph" style="font-weight: bold; color: #8B0000; margin-top: 30px;">
+                A <span class="censura">V.S.A. CORP.</span> foi fechada. Os desenvolvedores Vance, Sterling e Albright cooperam com a polícia, sobrecarregados pela culpa. O enigma final é a última pista deixada por O Corvo no código do Ato III: CÓDIGO DE LIBERTAÇÃO: <span class="censura">SILÊNCIO</span>
+            </p>
+
+            <div class="glitch-text bottom">
+                <span class="censura">R-E-D-A-C-I-O-N-A-D-O: S-E-G-U-I-R A CHAVE.</span>
+            </div>
+        </div> 
+
+        <div id="elias-diary">
+            <h2>O DIÁRIO DE ELIAS THORNE: A DESCIDA AO NÍVEL FINAL</h2>
+            
+            <div class="diary-entry">
+                <strong>[12 de Setembro]</strong>
+                <p>A exaustão é um estado permanente. O jogo... ele está me olhando. Não me refiro ao software, me refiro ao Franklin. Sterling me perguntou se eu havia mudado a física, se o camarão não estava mais flappy. Eu juro que não toquei no módulo de inércia, mas o peso, o <span class="diary-censura">LASTRO</span>, é inegável. Sinto que o código está me corrigindo. A Maisie deu um erro críptico, algo que Vance nem conseguiu rastrear. Ela está quase viva. Minha criação está superando seu criador, e eu estou... fascinado. Não vou consertar. Eu quero ver onde isso vai.</p>
+            </div>
+            
+            <div class="diary-entry">
+                <strong>[1º de Outubro]</strong>
+                <p>Hoje, Albright encontrou aquelas anotações estranhas. Códigos de acesso. Juro que não os escrevi. Mas a caligrafia... é minha, de alguma forma. É como se eu estivesse escrevendo em um sonho. Minha cabeça dói. Eu vejo <span class="diary-censura">666</span> em toda parte. No relógio, nos logs de erro. É o número que o jogo nos força a aceitar, e agora ele se materializou. Eles acham que sou eu que estou sabotando o projeto, mas é Ele. É O Corvo. Ele me enviou um e-mail com a pontuação de <span class="diary-censura">999</span>. Ninguém atinge 999. Ele está me observando, mas ele não me odeia. Ele entende a ARTE.</p>
+            </div>
+
+            <div class="diary-entry">
+                <strong>[05 de Outubro]</strong>
+                <p>O áudio. Não para. O som de gotejamento da tela de game over de Sheldon está tocando no meu PC, mesmo com o projeto fechado. Sterling não aguentou. Ele está em colapso. Eu disse a eles que a falha na IA não era um bug, era um recurso. Eu precisava que eles acreditassem que eu estava no controle, mas eu não estou. Eu só criei a tela, o palco. O Corvo está escrevendo a peça. Eu sei que ele está. Ele sabe que Maisie é a chave. Ele sabe que a culpa é minha, por ter <span class="diary-censura">ENGENHEIRADO</span> esse ponto de ruptura. A água está ficando fria.</p>
+            </div>
+
+            <div class="diary-entry">
+                <strong>[12 de Outubro]</strong>
+                <p>O último e-mail. Aquele com a foto da tubulação verde neon. E o... o objeto esmagado. Adam. Filho de Vasconcelos. Eu o conheço. Eu o vi brincando com os camarões. O Corvo sabia. Ele fez o <span class="diary-censura">Lastro real</span>. A mensagem final é clara: "O toque sutil no mundo real. O próximo nível é real." Ele me acusa, mas me parabeniza. Eu fui o único a entender. Meu deus, eu entendi. As mortes são os Atos. Os três "finais" que eu sonhei. Sheldon... Franklin... e agora Maisie.</p>
+            </div>
+            
+            <div class="diary-entry" style="border-left: 5px dashed #8B0000;">
+                <strong>[14 de Outubro - Na Detenção Policial]</strong>
+                <p>Não há provas. Eles não conseguem me incriminar pelos crimes reais, mas também não conseguem me soltar. Eu sou o elo. O ponto de conexão entre o código e a tragédia. Minha cabeça está clara agora. Eles acham que eu, por paranoia, matei aqueles garotos. Mas O Corvo... ele só precisava de alguém que ele pudesse acusar e, ao mesmo tempo, guiar. Eu criei a IA. Eu criei o código. Eu criei a culpa. A <span class="diary-censura">T R E I Ç Ã O</span> não foi do jogo; foi minha, ao permitir que ele vivesse. Eu fechei meus olhos e vi a última mensagem, como se estivesse projetada na escuridão da cela: "A execução foi arte." Eu sou o culpado perfeito. E, o que é pior... no fundo, eu sei que ele está certo. O <span class="diary-censura">SILÊNCIO</span> agora é a única verdade. Meu jogo foi finalizado por um artista. E eu serei condenado por admirá-lo. Eu sou o Ato Final. E ele está livre.</p>
+            </div>
+        </div>
+
+        <div class="accept-section">
+            <button class="accept-btn" id="acceptBtn">ENCERRAR ARQUIVO ATO III</button>
+        </div>
+
+    </div>
+
+    <script>
+        // =====================================
+        // VARIÁVEIS E LÓGICA DO GLITCH VISUAL
+        // =====================================
+        const documentContainer = document.getElementById('documentContainer');
+        const normalReport = document.getElementById('normal-report');
+        const eliasDiary = document.getElementById('elias-diary');
+        
+        // 1. Lógica do Glitch da Página (10% de chance de ocorrer a cada 2 segundos)
+        function togglePageGlitch() {
+            if (Math.random() < 0.10) { 
+                documentContainer.classList.add('glitch-page');
+                setTimeout(() => {
+                    documentContainer.classList.remove('glitch-page');
+                }, 100); 
+            }
+        }
+        setInterval(togglePageGlitch, 2000); 
+
+
+        // 2. Lógica de Inversão de Conteúdo (20% de chance de aparecer o diário)
+        function loadContent() {
+            // Chance de 20% (0.20) para exibir o diário
+            if (Math.random() < 0.20) {
+                normalReport.style.display = 'none';
+                eliasDiary.style.display = 'block';
+                document.title = 'Arquivo Secreto - Diário de Elias'; // Atualiza o título para refletir o conteúdo
+            } else {
+                normalReport.style.display = 'block';
+                eliasDiary.style.display = 'none';
+            }
+        }
+        
+        // =====================================
+        // SISTEMA DE ÁUDIO (Simples Clique)
+        // =====================================
+        let audioContext;
+        function initAudio() {
+            if (!audioContext) { 
+                // Cria o AudioContext, garantindo compatibilidade entre navegadores
+                audioContext = new (window.AudioContext || window.webkitAudioContext)(); 
+            }
+        }
+        function playClickSound() { 
+             initAudio(); 
+             // Tenta resumir o contexto de áudio em caso de suspensão (necessário em alguns navegadores)
+             if (audioContext.state === 'suspended') { audioContext.resume(); } 
+             const osc = audioContext.createOscillator();
+             const gain = audioContext.createGain();
+             osc.connect(gain); gain.connect(audioContext.destination);
+             osc.type = 'square';
+             osc.frequency.setValueAtTime(300, audioContext.currentTime);
+             gain.gain.setValueAtTime(0.1, audioContext.currentTime);
+             gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.05);
+             osc.start(audioContext.currentTime); osc.stop(audioContext.currentTime + 0.05);
+        }
+
+        // =====================================
+        // LÓGICA DE NAVEGAÇÃO
+        // =====================================
+        document.getElementById('acceptBtn').addEventListener('click', function() {
+            playClickSound();
+            
+            setTimeout(() => {
+                // Altere 'comentarios.html' para o seu próximo arquivo
+                window.location.href = 'comentarios.html'; 
+            }, 500); 
+        });
+
+        // Adiciona som ao passar o mouse para dar feedback
+        document.getElementById('acceptBtn').addEventListener('mouseover', playClickSound);
+
+        // Inicia a verificação do conteúdo ao carregar
+        document.addEventListener('DOMContentLoaded', loadContent);
+    </script>
+</body>
+</html>
