@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flap of Despair - Códigos Secretos</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        /* =========================================================================
+           SEÇÃO CSS: Reset e Estilos Gerais
+           ========================================================================= */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Press Start 2P', monospace;
+            background: linear-gradient(to bottom, #000000, #333333);
+            color: #8B0000;
+            overflow: hidden;
+            height: 100vh;
+            position: relative;
+            transition: transform 1s ease, background 1s ease;
+        }
+
+        /* =========================================================================
+           SEÇÃO CSS: Overlay, Fundo e Animações
+           ========================================================================= */
+        .dark-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0); z-index: 100; transition: background 1s ease;
+            pointer-events: none;
+        }
+        .dark-overlay.active { background: rgba(0, 0, 0, 0.8); }
+        
+        body::before { /* Fundo de Nuvens Pixelizadas */
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-image:
+                radial-gradient(circle at 20% 80%, rgba(102, 102, 102, 0.2) 1px, transparent 1px),
+                radial-gradient(circle at 80% 20%, rgba(102, 102, 102, 0.2) 1px, transparent 1px),
+                radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.4) 2px, transparent 2px);
+            background-size: 100px 100px, 150px 150px, 200px 200px;
+            animation: cloudDrift 20s linear infinite;
+        }
+        @keyframes cloudDrift { 0% { transform: translateX(0); } 100% { transform: translateX(-100px); } }
+
+        .title { /* Título e Glitch */
+            position: absolute; top: 20%; left: 50%; transform: translateX(-50%) skew(-5deg);
+            font-size: 2rem; color: #8B0000;
+            text-shadow: 2px 2px 0 #000000, 4px 4px 0 #666666; z-index: 10;
+            animation: glitch 2s infinite;
+        }
+        @keyframes glitch { 0%, 100% { transform: translateX(-50%) skew(-5deg); } 10% { transform: translateX(-52%) skew(-7deg); color: #DC143C; } 20% { transform: translateX(-48%) skew(-3deg); color: #8B0000; } }
+        
+        .score { /* Score e Blink */
+            position: absolute; top: 10%; right: 5%; font-size: 1.5rem; color: #8B0000;
+            text-shadow: 1px 1px 0 #000000; animation: blink 1s infinite; z-index: 10;
+        }
+        @keyframes blink { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0.3; } }
+
+        /* =========================================================================
+           SEÇÃO CSS: Formulário Principal (Input/Verificar)
+           ========================================================================= */
+        .codigo-section {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            display: flex; flex-direction: column; align-items: center; gap: 15px; z-index: 10;
+        }
+        .codigo-input {
+            width: 250px; padding: 10px; background: #555555; border: 3px solid #8B0000;
+            border-radius: 5px; color: #FFFFFF; font-family: 'Press Start 2P', monospace;
+            font-size: 0.8rem; text-align: center; transition: all 0.3s ease;
+            box-shadow: inset 0 0 10px rgba(139, 0, 0, 0.4), 2px 2px 5px #000000;
+        }
+        .codigo-input:focus {
+            outline: none; border-color: #DC143C;
+            box-shadow: 0 0 15px #8B0000, inset 0 0 15px rgba(139, 0, 0, 0.6);
+            transform: scale(1.02); animation: borderBlink 0.5s infinite;
+        }
+        @keyframes borderBlink { 0%, 100% { border-color: #8B0000; } 50% { border-color: #DC143C; } }
+        
+        .verificar-btn { /* Botão Verificar */
+            padding: 10px 20px; background: #555555; border: 2px solid #8B0000;
+            color: #FFFFFF; font-family: 'Press Start 2P', monospace; font-size: 0.7rem;
+            cursor: pointer; transition: all 0.3s ease; box-shadow: 2px 2px 5px #000000;
+        }
+        .verificar-btn:hover {
+            transform: scale(1.05) rotate(2deg); background: #666666;
+            border-color: #DC143C; box-shadow: 0 0 10px #8B0000;
+        }
+        
+        .voltar-btn { /* Botão Voltar */
+            position: absolute; top: 10%; left: 5%; padding: 10px 15px; background: #555555;
+            border: 2px solid #8B0000; color: #FFFFFF; font-family: 'Press Start 2P', monospace;
+            font-size: 0.6rem; cursor: pointer; transition: all 0.3s ease;
+            box-shadow: 2px 2px 5px #000000; z-index: 10;
+        }
+        .voltar-btn:hover {
+            transform: scale(1.05) rotate(2deg); background: #666666;
+            border-color: #DC143C; box-shadow: 0 0 10px #8B0000;
+        }
+
+        /* =========================================================================
+           SEÇÃO CSS: Feedback, Dicas e Subliminar
+           ========================================================================= */
+        .feedback {
+            position: absolute; top: 60%; left: 50%; transform: translateX(-50%);
+            font-size: 0.7rem; text-align: center; min-width: 200px; padding: 10px;
+            background: rgba(0, 0, 0, 0.7); border: 1px solid #8B0000; color: #FFFFFF;
+            opacity: 0; transition: opacity 0.5s ease; z-index: 10;
+        }
+        .feedback.show { opacity: 1; }
+        .feedback.error { color: #DC143C; animation: blink 0.5s infinite; }
+        .feedback.success { color: #4CAF50; }
+        .feedback.warning { color: #FFD700; }
+        
+        .dicas {
+            position: absolute; bottom: 20%; left: 50%; transform: translateX(-50%);
+            font-size: 0.5rem; color: rgba(139, 0, 0, 0.4); text-align: center;
+            max-width: 300px; z-index: 5; animation: fadeInOut 4s infinite;
+        }
+        .subliminal {
+            position: absolute; bottom: 5%; left: 50%; transform: translateX(-50%);
+            font-size: 0.5rem; color: rgba(139, 0, 0, 0.3); text-align: center;
+            z-index: 10; animation: fadeInOut 4s infinite;
+        }
+        /* Defina a animação fadeInOut se ela for usada no CSS anterior, ou remova se for um erro de cópia */
+        /* @keyframes fadeInOut { 0%, 100% { opacity: 0; } 50% { opacity: 0.3; } } */
+
+        /* =========================================================================
+           SEÇÃO CSS: ESTILO DO BOTÃO DE RESET (Discreto)
+           ========================================================================= */
+        .reset-btn {
+            position: absolute; bottom: 1%; right: 1%; padding: 3px 6px;
+            font-size: 0.45rem; background: transparent;
+            border: 1px solid rgba(139, 0, 0, 0.2); color: rgba(139, 0, 0, 0.5);
+            opacity: 0.1; transition: opacity 0.3s, border-color 0.3s, transform 0.3s;
+            cursor: pointer; font-family: 'Press Start 2P', monospace; z-index: 10;
+        }
+        .reset-btn:hover {
+            opacity: 1; border-color: #DC143C; transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="title">Códigos Secretos</div>
+    <div class="score">666</div>
+
+    <button class="voltar-btn" id="voltarBtn">VOLTAR</button>
+
+    <div class="codigo-section">
+        <input type="text" class="codigo-input" id="codigoInput" placeholder="Insira o código aqui..." maxlength="20">
+        <button class="verificar-btn" id="verificarBtn">VERIFICAR</button>
+        <div class="feedback" id="feedback"></div>
+    </div>
+
+    <div class="dicas" id="dicas"></div>
+    <div class="subliminal">"Os códigos revelam os mártires..."</div>
+
+    <div class="dark-overlay" id="darkOverlay"></div>
+    
+    <button class="reset-btn" id="resetBtn">RESETAR CÓDIGOS</button>
+
+    <script>
+        // =====================================
+        // 1. DADOS DE CÓDIGOS E CHAVES
+        // =====================================
+        const codigosValidos = [
+            // Personagens
+            { codigo: 'FLAP_DO_666', desbloqueia: 'franklin', dica: 'Ele tentou deletar a falha fatal, mas a versão de **666** ainda existe.' }, // Conecta o 666 à falha e à tentativa de deleção do Dev. A.
+            { codigo: 'ABELHA', desbloqueia: 'maisie', dica: 'A pista de **O Corvo** para **Maisie** estava oculta em um *log* de teclado antigo.' }, // Liga a Abelha (A B E L H A) à fonte (T9) e ao vilão.
+            
+            // Atos (Chaves no LocalStorage: desbloqueado_ato1, desbloqueado_ato2, etc.)
+            { codigo: '3533', desbloqueia: 'ato1', dica: 'O código de ERRO que o Predador deixou na tela de Game Over.' }, // Relacionado ao ERRO 3533.
+            { codigo: 'ENGINEERED', desbloqueia: 'ato2', dica: 'O *modus operandi* de **Elias** era sempre o mesmo: *Projetado*.' }, // Usa o termo incriminatório em inglês, referenciando a ação de Elias.
+            { codigo: 'SILÊNCIO', desbloqueia: 'ato3', dica: 'O último código só é revelado após a **Morte Sutil** do predador que se alimenta.' }, // Usa o código final 'SILÊNCIO' e faz referência ao Predador de Maisie (Urso Esfomeado).
+            
+            // Código Mestre
+            { codigo: '666', desbloqueia: 'all', dica: 'O número que **Thorne** transformou em ritual. A pontuação é o fim.' } // Foca no 666 como o número central e ritualístico de Elias.
+        ];
+
+
+        const personagensKeys = ['sheldon', 'franklin', 'maisie'];
+        const atosKeys = ['ato1', 'ato2', 'ato3'];
+
+        const dicasArray = codigosValidos.map(codigo => codigo.dica).filter(dica => dica);
+
+        function exibirDicaAleatoria() {
+            const dicasElement = document.getElementById('dicas');
+            if (dicasArray.length > 0) {
+                // Adicionamos um toque de glitch visual ao texto da dica
+                const indice = Math.floor(Math.random() * dicasArray.length);
+                const dicaOriginal = dicasArray[indice];
+                
+                // Simula um glitch (pode ser estilizado com CSS depois)
+                const glitchPrefix = Math.random() < 0.2 ? '## ERRO ## ' : 'DICA: ';
+
+                dicasElement.textContent = `${glitchPrefix}${dicaOriginal}`;
+            }
+        }
+        
+        // Inicialização e Intervalo
+        exibirDicaAleatoria();
+        setInterval(exibirDicaAleatoria, 8000); 
+
+
+        // =====================================
+        // 2. SISTEMA DE ÁUDIO
+        // =====================================
+        let audioContext;
+        function initAudio() {
+            if (!audioContext) { audioContext = new (window.AudioContext || window.webkitAudioContext)(); }
+        }
+        function playClickSound() { 
+             initAudio(); 
+             const osc = audioContext.createOscillator();
+             const gain = audioContext.createGain();
+             osc.connect(gain); gain.connect(audioContext.destination);
+             osc.type = 'square';
+             osc.frequency.setValueAtTime(440, audioContext.currentTime);
+             gain.gain.setValueAtTime(0.15, audioContext.currentTime);
+             gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.05);
+             osc.start(audioContext.currentTime); osc.stop(audioContext.currentTime + 0.05);
+        }
+        function playGlitchSound() { 
+             initAudio(); 
+             const osc = audioContext.createOscillator();
+             const gain = audioContext.createGain();
+             osc.connect(gain); gain.connect(audioContext.destination);
+             osc.type = 'sawtooth';
+             osc.frequency.setValueAtTime(250, audioContext.currentTime);
+             osc.frequency.exponentialRampToValueAtTime(100, audioContext.currentTime + 0.1);
+             gain.gain.setValueAtTime(0.3, audioContext.currentTime);
+             gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+             osc.start(audioContext.currentTime); osc.stop(audioContext.currentTime + 0.3);
+        }
+        function playSuccessSound() { 
+             initAudio(); 
+             const oscillator = audioContext.createOscillator();
+             const gainNode = audioContext.createGain();
+             oscillator.connect(gainNode); gainNode.connect(audioContext.destination);
+             oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+             gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+             gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+             oscillator.start(audioContext.currentTime); oscillator.stop(audioContext.currentTime + 0.2);
+        }
+
+        // =====================================
+        // 3. LÓGICA PRINCIPAL (Verificação e Persistência)
+        // =====================================
+
+        function mostrarFeedback(mensagem, tipo = 'neutral') {
+            const feedback = document.getElementById('feedback');
+            feedback.textContent = mensagem;
+            feedback.className = `feedback show ${tipo}`;
+            setTimeout(() => {
+                feedback.classList.remove('show');
+            }, 3000);
+        }
+
+        function verificarCodigo() {
+            const inputElement = document.getElementById('codigoInput');
+            const codigoUpper = inputElement.value.toUpperCase().trim();
+            const codigoValido = codigosValidos.find(c => c.codigo === codigoUpper);
+
+            if (!codigoValido) {
+                playGlitchSound();
+                mostrarFeedback('Código inválido... O predador observa.', 'error');
+                inputElement.value = '';
+                return;
+            }
+            
+            playSuccessSound();
+            const desbloqueia = codigoValido.desbloqueia;
+            let mensagem = `Código "${codigoUpper}" aceito! `;
+            let foiDesbloqueado = false;
+            
+            if (desbloqueia === 'all') {
+                // Código Mestre: Desbloqueia todos os Personagens e Atos
+                [...personagensKeys, ...atosKeys].forEach(item => {
+                    const key = `desbloqueado_${item}`;
+                    if (localStorage.getItem(key) !== 'true') {
+                        localStorage.setItem(key, 'true');
+                        foiDesbloqueado = true;
+                    }
+                });
+                mensagem += foiDesbloqueado ? 'TUDO LIBERADO! (Personagens e Atos)' : 'Todos já estavam desbloqueados.';
+                
+            } else {
+                // Código específico (Personagem ou Ato)
+                const keyPrefix = desbloqueia.startsWith('ato') ? 'desbloqueado_' : 'desbloqueado_';
+                const key = `${keyPrefix}${desbloqueia}`;
+
+                if (localStorage.getItem(key) !== 'true') {
+                    localStorage.setItem(key, 'true');
+                    mensagem += `${desbloqueia.toUpperCase()} desbloqueado!`;
+                    foiDesbloqueado = true;
+                } else {
+                    mensagem += `${desbloqueia.toUpperCase()} já estava desbloqueado.`;
+                }
+            }
+            
+            mostrarFeedback(mensagem, foiDesbloqueado ? 'success' : 'warning');
+            inputElement.value = '';
+        }
+
+        // =====================================
+        // 4. LÓGICA DE RESETAR CÓDIGOS
+        // =====================================
+        function resetCodes() {
+            if (confirm("ATENÇÃO: Isso apagará TODOS os desbloqueios de Personagens (Franklin e Maisie) e Atos. Deseja continuar?")) {
+                
+                // Combina todas as chaves
+                const allKeys = [...personagensKeys, ...atosKeys];
+                
+                allKeys.forEach(item => {
+                    localStorage.removeItem(`desbloqueado_${item}`);
+                });
+
+                // Não precisa forçar o Sheldon, pois a página de seleção cuida dele.
+                
+                alert("Códigos de desbloqueio resetados! Volte para a tela de seleção.");
+                // Mantém na mesma página para que o usuário possa voltar com o botão
+            }
+        }
+        
+        // =====================================
+        // 5. EVENT LISTENERS
+        // =====================================
+        document.getElementById('verificarBtn').addEventListener('click', function() {
+            playClickSound();
+            verificarCodigo();
+        });
+
+        document.getElementById('codigoInput').addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                playClickSound();
+                verificarCodigo();
+            }
+        });
+        
+        document.getElementById('voltarBtn').addEventListener('click', function() {
+            playClickSound();
+            document.body.style.transform = 'scale(0.9)';
+            document.getElementById('darkOverlay').classList.add('active');
+
+            setTimeout(() => {
+                window.location.href = 'selecao.html'; 
+            }, 1000); 
+        });
+        
+        document.getElementById('resetBtn').addEventListener('click', resetCodes);
+
+        document.getElementById('verificarBtn').addEventListener('mouseover', playClickSound);
+        document.getElementById('voltarBtn').addEventListener('mouseover', playClickSound);
+        document.getElementById('resetBtn').addEventListener('mouseover', playClickSound); 
+    </script>
+</body>
+</html>

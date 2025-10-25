@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flap of Despair - Tela Inicial / Failure Log</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        /* =========================================================================
+           SEÇÃO CSS: RESET E ESTILOS GERAIS
+           ========================================================================= */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Press Start 2P', monospace;
+            color: #8B0000;
+            overflow: hidden;
+            height: 100vh;
+            position: relative;
+            transition: transform 1s ease, background 1s ease;
+        }
+        /* ESTILO NORMAL (Flap of Despair) */
+        body.mode-normal {
+            background: linear-gradient(to bottom, #000000, #333333); 
+        }
+        /* ESTILO SECRETO (Failure Log / Data Select) */
+        body.mode-secret {
+            background-color: #550000;
+            background-image: repeating-linear-gradient(135deg, #330000 0, #330000 1px, transparent 1px, transparent 5px), 
+                              repeating-linear-gradient(45deg, #440000 0, #440000 1px, transparent 1px, transparent 5px);
+            color: #FFFF00;
+        }
+        
+        /* =========================================================================
+           SEÇÃO CSS: OVERLAY DE ESCURECIMENTO
+           ========================================================================= */
+        .dark-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0);
+            z-index: 100;
+            transition: background 0.5s ease;
+            pointer-events: none;
+        }
+        .dark-overlay.active {
+            background: rgba(0, 0, 0, 0.95);
+        }
+
+        /* =========================================================================
+           SEÇÃO CSS: MODO NORMAL (Estilo Original)
+           ========================================================================= */
+        .mode-normal .normal-content { display: block; }
+        .mode-secret .normal-content { display: none; }
+
+        /* Fundo de Nuvens Pixelizadas (Apenas no modo normal) */
+        body.mode-normal::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                radial-gradient(circle at 20% 80%, rgba(102, 102, 102, 0.2) 1px, transparent 1px),
+                radial-gradient(circle at 80% 20%, rgba(102, 102, 102, 0.2) 1px, transparent 1px),
+                radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.4) 2px, transparent 2px);
+            background-size: 100px 100px, 150px 150px, 200px 200px;
+            animation: cloudDrift 20s linear infinite;
+        }
+        @keyframes cloudDrift {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-100px); }
+        }
+
+        /* Título Flap of Despair e Pontuação */
+        .title {
+            position: absolute;
+            top: 20%; left: 50%; transform: translateX(-50%) skew(-5deg);
+            font-size: 2rem; color: #8B0000;
+            text-shadow: 2px 2px 0 #000000, 4px 4px 0 #666666;
+            z-index: 10; animation: glitch 2s infinite;
+        }
+        .score {
+            position: absolute; top: 10%; right: 5%; font-size: 1.5rem;
+            color: #8B0000; text-shadow: 1px 1px 0 #000000;
+            animation: blink 1s infinite; z-index: 10; cursor: pointer;
+        }
+        .subliminal {
+            position: absolute; bottom: 5%; left: 50%; transform: translateX(-50%);
+            font-size: 0.5rem; color: rgba(139, 0, 0, 0.3);
+            text-align: center; z-index: 10; animation: fadeInOut 4s infinite;
+        }
+
+        /* Personagens (Estilo botão) */
+        .characters {
+            position: absolute; bottom: 30%; left: 50%; transform: translateX(-50%);
+            display: flex; gap: 50px; z-index: 5;
+        }
+        .character-btn {
+            width: 80px; height: 80px; font-size: 3rem; background: #555555;
+            border: 3px solid #8B0000; border-radius: 10px; color: #FFFFFF;
+            cursor: pointer; transition: all 0.3s ease;
+            filter: grayscale(100%) sepia(20%) brightness(0.8);
+            box-shadow: inset 0 0 10px rgba(139, 0, 0, 0.4), 2px 2px 5px #000000;
+            position: relative;
+        }
+        .character-btn.locked {
+            opacity: 0.5; cursor: not-allowed; filter: grayscale(100%) brightness(0.5);
+        }
+        /* CORREÇÃO: Usar 🔒 para bloqueado */
+        .character-btn.locked::after {
+            content: '🔒';
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%); font-size: 1.5rem; color: #8B0000;
+            text-shadow: 1px 1px 0 #000; z-index: 1;
+        }
+        
+        /* Botões CÓDIGO/COMENTÁRIOS */
+        .unlock-buttons {
+            position: absolute; bottom: 15%; left: 50%; transform: translateX(-50%);
+            display: flex; gap: 20px; z-index: 5;
+        }
+        .unlock-btn {
+            padding: 10px 15px; background: #555555; border: 2px solid #8B0000;
+            color: #FFFFFF; font-family: 'Press Start 2P', monospace;
+            font-size: 0.6rem; cursor: pointer; transition: all 0.3s ease;
+            box-shadow: 2px 2px 5px #000000;
+        }
+
+        /* =========================================================================
+           SEÇÃO CSS: MODO SECRETO (FAILURE LOG / DATA SELECT)
+           ========================================================================= */
+        .mode-normal .secret-content { display: none; }
+        .mode-secret .secret-content { 
+            display: flex; flex-direction: column; justify-content: center; 
+            align-items: center; height: 100vh;
+        }
+
+        /* --- Título e Rótulo Secretos --- */
+        .secret-title {
+            position: absolute; top: 5%; font-size: 1.5rem; color: #FFFF00;
+            text-shadow: 3px 3px 0 #8B0000, 6px 6px 0 #000000; z-index: 20;
+        }
+        .secret-label {
+            position: absolute; bottom: 10%; font-size: 1.8rem; color: #FFFFFF;
+            text-shadow: 2px 2px 0 #000000; z-index: 20;
+        }
+
+        /* --- Estrutura de Colunas (Slots de Dados) --- */
+        .selection-container {
+            display: flex; justify-content: center; align-items: flex-end;
+            gap: 20px; height: 50vh; max-width: 900px; width: 90%;
+            position: relative; z-index: 10;
+        }
+
+        .char-slot-column {
+            display: flex; flex-direction: column; align-items: center;
+            width: 30%; height: 100%; position: relative;
+        }
+
+        .top-box {
+            width: 100%; height: 25%; background-color: #330000;
+            border: 4px solid #FFFF00; margin-bottom: -4px;
+            background-image: radial-gradient(#660000 1px, transparent 1px);
+            background-size: 4px 4px; box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+            position: relative; /* Necessário para o cadeado */
+        }
+        
+        /* Slot de Personagem do Modo Secreto */
+        .selection-area {
+            width: 80%; height: 75%; border: 4px solid #FFFF00; border-top: none;
+            background: rgba(170, 0, 0, 0.1); display: flex; justify-content: center;
+            align-items: flex-end; padding-bottom: 5%; overflow: hidden;
+            position: relative; cursor: pointer; transition: all 0.2s ease;
+        }
+        
+        .char-sprite {
+            font-size: 3rem; text-shadow: 1px 1px 0 #000;
+            transition: transform 0.1s ease-out, filter 0.5s ease;
+            pointer-events: none;
+        }
+
+        /* INDICADOR DE BLOQUEIO NO MODO SECRETO */
+        .slot-locked .top-box {
+            border-color: #8B0000; /* Borda vermelha de bloqueio */
+        }
+        .slot-locked .selection-area {
+            cursor: not-allowed;
+            filter: grayscale(100%) brightness(0.5);
+            border-color: #8B0000;
+        }
+        .slot-locked .top-box::after {
+            content: '🔒';
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 1.5rem; color: #DC143C; text-shadow: 1px 1px 0 #000;
+            z-index: 1;
+        }
+        
+        /* Botões de Ação Secretos */
+        .secret-action-buttons {
+            position: absolute; bottom: 3%; left: 50%; transform: translateX(-50%);
+            display: flex; gap: 40px; z-index: 50;
+        }
+        .secret-action-btn {
+            padding: 10px 15px; background: #222222; border: 2px solid #FFFF00;
+            color: #FFFFFF; font-family: 'Press Start 2P', monospace;
+            font-size: 0.6rem; cursor: pointer; transition: all 0.3s ease;
+            box-shadow: 2px 2px 5px #000000;
+        }
+    </style>
+</head>
+<body class="mode-normal">
+    <div class="normal-content">
+        <div class="title">Flap of Despair</div>
+        <div class="score" id="score666">666</div>
+
+        <div class="characters">
+            <button class="character-btn" id="sheldon" title="Sheldon, o Camarão">🦐</button>
+            <button class="character-btn locked" id="franklin" title="Franklin, a Tartaruga">🐢</button>
+            <button class="character-btn locked" id="maisie" title="Maisie, a Abelha">🐝</button>
+        </div>
+
+        <div class="unlock-buttons">
+            <button class="unlock-btn" id="codigo-btn">CÓDIGO</button>
+            <button class="unlock-btn" id="comentarios-btn">COMENTÁRIOS</button>
+        </div>
+
+        <div class="subliminal">"Eu sou o Predador. Você está jogando de novo."</div>
+    </div>
+    
+    <div class="secret-content">
+        <div class="secret-title">V.S.A. CORP. - FAILURE LOG</div>
+        
+        <div class="selection-container">
+            <div class="char-slot-column" id="slot-sheldon">
+                <div class="top-box"></div>
+                <div class="selection-area" data-char="sheldon">
+                    <div class="char-sprite" title="Log: Sheldon">🦐</div>
+                </div>
+            </div>
+            
+            <div class="char-slot-column slot-locked" id="slot-franklin">
+                <div class="top-box"></div>
+                <div class="selection-area" data-char="franklin">
+                    <div class="char-sprite" title="Log: Franklin">🐢</div>
+                </div>
+            </div>
+            
+            <div class="char-slot-column slot-locked" id="slot-maisie">
+                <div class="top-box"></div>
+                <div class="selection-area" data-char="maisie">
+                    <div class="char-sprite" title="Log: Maisie">🐝</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="secret-label">DATA SELECT</div>
+        
+        <div class="secret-action-buttons">
+            <button class="secret-action-btn" id="secret-codigo-btn">O ENIGMA FINAL</button>
+            <button class="secret-action-btn" id="secret-comentarios-btn">COMENTÁRIOS</button>
+        </div>
+    </div>
+
+    <div class="dark-overlay" id="darkOverlay"></div>
+
+    <script>
+        // =====================================
+        // SISTEMA DE ÁUDIO (Corrigido)
+        // =====================================
+        let audioContext;
+
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playClickSound() { /* ... (mantido) ... */
+            initAudio();
+            const osc = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            osc.connect(gain);
+            gain.connect(audioContext.destination);
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(440, audioContext.currentTime);
+            gain.gain.setValueAtTime(0.15, audioContext.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.05);
+            osc.start(audioContext.currentTime);
+            osc.stop(audioContext.currentTime + 0.05);
+        }
+
+        function playGlitchSound() { /* ... (mantido) ... */
+            initAudio();
+            const osc = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            osc.connect(gain);
+            gain.connect(audioContext.destination);
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(250, audioContext.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(100, audioContext.currentTime + 0.1);
+            gain.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+            osc.start(audioContext.currentTime);
+            osc.stop(audioContext.currentTime + 0.3);
+        }
+
+        function playSuccessSound() { /* ... (mantido) ... */
+            initAudio();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+            gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.2);
+        }
+        
+        // CORREÇÃO: Substitui 'noise' por um ruído branco usando BufferSource
+        function playCriticalFailureSound() {
+            initAudio();
+            const bufferSize = audioContext.sampleRate * 1; // 1 second
+            const buffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
+            const output = buffer.getChannelData(0);
+            
+            // Preenche o buffer com ruído branco
+            for (let i = 0; i < bufferSize; i++) {
+                output[i] = Math.random() * 2 - 1;
+            }
+            
+            const source = audioContext.createBufferSource();
+            const gainNode = audioContext.createGain();
+            source.buffer = buffer;
+            source.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.8);
+            
+            source.start(audioContext.currentTime);
+            source.stop(audioContext.currentTime + 0.8);
+        }
+
+        // =====================================
+        // LOCAL STORAGE E ESTADO DO PERSONAGEM
+        // =====================================
+        const destinos = {
+            'sheldon': 'sheldon.html', 
+            'franklin': 'franklin.html',
+            'maisie': 'maisie.html'
+        };
+
+        const failureLogs = {
+            'sheldon': 'sheldon.html',
+            'franklin': 'franklin.html',
+            'maisie': 'maisie.html'
+        };
+
+        // Função CRUCIAL: Lê o localStorage e desbloqueia os botões em AMBOS os modos
+        function carregarEstadoDeDesbloqueio() {
+            ['sheldon', 'franklin', 'maisie'].forEach(id => {
+                // Modo Normal
+                const btnNormal = document.getElementById(id);
+                // Modo Secreto
+                const slotSecret = document.getElementById(`slot-${id}`);
+                
+                // O Sheldon é desbloqueado por padrão
+                if (id === 'sheldon') {
+                    btnNormal.classList.remove('locked');
+                    slotSecret.classList.remove('slot-locked');
+                    return;
+                }
+                
+                // Os outros dependem do LocalStorage
+                if (localStorage.getItem(`desbloqueado_${id}`) === 'true') {
+                    btnNormal.classList.remove('locked');
+                    slotSecret.classList.remove('slot-locked');
+                }
+            });
+        }
+
+        // =====================================
+        // FUNÇÃO CRÍTICA: ATIVAR O MODO SECRETO
+        // =====================================
+        function activateSecretMode() {
+            const body = document.body;
+            const overlay = document.getElementById('darkOverlay');
+
+            playCriticalFailureSound();
+            overlay.classList.add('active');
+            
+            setTimeout(() => {
+                body.classList.remove('mode-normal');
+                body.classList.add('mode-secret');
+                document.title = "V.S.A. Corp. - Failure Log";
+                overlay.classList.remove('active');
+            }, 500);
+        }
+        
+        // =====================================
+        // ANIMAÇÃO E NAVEGAÇÃO
+        // =====================================
+        function selecionarPersonagem(id) {
+            const btn = document.getElementById(id);
+            const overlay = document.getElementById('darkOverlay');
+
+            if (btn.classList.contains('locked')) {
+                playGlitchSound();
+                alert('ACESS DENIED! CÓDIGO NECESSÁRIO.');
+                return;
+            }
+
+            document.body.style.transform = 'scale(1.2)';
+            overlay.classList.add('active');
+            playSuccessSound();
+
+            setTimeout(() => {
+                window.location.href = destinos[id];
+            }, 1500);
+        }
+
+        function carregarLog(id) {
+            const slot = document.getElementById(`slot-${id}`);
+            const overlay = document.getElementById('darkOverlay');
+
+            if (slot.classList.contains('slot-locked')) {
+                 playGlitchSound();
+                 alert('LOG CRÍTICO BLOQUEADO. REQUIERE CÓDIGO.');
+                 return;
+            }
+
+            playSuccessSound();
+            overlay.classList.add('active');
+
+            setTimeout(() => {
+                window.location.href = failureLogs[id];
+            }, 1000);
+        }
+
+        function navegar(destino) {
+            const overlay = document.getElementById('darkOverlay');
+            playClickSound();
+
+            document.body.style.transform = 'scale(0.9)';
+            overlay.classList.add('active');
+
+            setTimeout(() => {
+                window.location.href = destino;
+            }, 1000);
+        }
+
+
+        // =====================================
+        // EVENT LISTENERS
+        // =====================================
+        window.addEventListener('load', carregarEstadoDeDesbloqueio);
+
+        // --- MODO NORMAL LISTENERS ---
+        document.getElementById('score666').addEventListener('click', activateSecretMode);
+
+        ['sheldon', 'franklin', 'maisie'].forEach(id => {
+            const btn = document.getElementById(id);
+            btn.addEventListener('click', function() { selecionarPersonagem(id); });
+            btn.addEventListener('mouseover', playClickSound);
+        });
+
+        document.getElementById('codigo-btn').addEventListener('click', function() { navegar('codigos.html'); });
+        document.getElementById('codigo-btn').addEventListener('mouseover', playClickSound);
+
+        document.getElementById('comentarios-btn').addEventListener('click', function() { navegar('comentarios.html'); });
+        document.getElementById('comentarios-btn').addEventListener('mouseover', playClickSound);
+        
+        // --- MODO SECRETO LISTENERS ---
+        document.querySelectorAll('.secret-content .selection-area').forEach(area => {
+            const charId = area.getAttribute('data-char');
+            area.addEventListener('click', function() { carregarLog(charId); });
+            area.addEventListener('mouseover', playClickSound);
+        });
+        
+        document.getElementById('secret-codigo-btn').addEventListener('click', function() { navegar('codigos.html'); });
+        // CORREÇÃO: Usa 'comentarios.html' para o destino do botão
+        document.getElementById('secret-comentarios-btn').addEventListener('click', function() { navegar('comentarios.html'); });
+
+    </script>
+</body>
+</html>
